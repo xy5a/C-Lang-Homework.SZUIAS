@@ -80,5 +80,5 @@ jobs:
     - name: Upload Artifatt
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.config.name }}
+        name: ${{ matrix.os }}
         path: ${{ steps.strings.outputs.build-output-dir }}/C-Lang-Homework*
