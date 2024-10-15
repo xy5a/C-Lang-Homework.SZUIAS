@@ -33,9 +33,6 @@ jobs:
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -43,6 +40,9 @@ jobs:
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
 
     steps:
     - uses: actions/checkout@v4
@@ -80,5 +80,7 @@ jobs:
     - name: Upload Artifatt
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.os }}
-        path: ${{ steps.strings.outputs.build-output-dir }}/C-Lang-Homework*
+        name: ${{ matrix.os }}_${{ matrix.c_compiler }}
+        path: |
+          ${{ steps.strings.outputs.build-output-dir }}/C-Lang-Homework
+          ${{ steps.strings.outputs.build-output-dir }}/C-Lang-Homework.exe
