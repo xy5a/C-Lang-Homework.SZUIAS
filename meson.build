@@ -5,7 +5,7 @@ deps = [
   cc.find_library('m', required: false),
 ]
 
-src = files('src/hw01.c', 'src/main.c')
+src = files('src/hw01.c', 'src/main.c', 'src/hw02.c')
 
 executable(
   'C-Lang-Homework',

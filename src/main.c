@@ -83,7 +83,9 @@ int main(int argc, char *argv[]) {
 
 #else
 
-void usage(void) { puts("operations: F Y P d f t"); }
+#include "hw02.h"
+
+void usage(void) { puts("operations: F Y P d f t 0 1 u g q"); }
 
 int main(void) {
   char opt = 0;
@@ -126,6 +128,27 @@ int main(void) {
 
     case 'q':
       opt = EOF;
+      break;
+
+    case '0': {
+      printf("encrypted: %s\n", encrypt(optarg));
+    } break;
+
+    case '1': {
+      printf("decrypted: %s\n", decrypt(optarg));
+    } break;
+
+    case 'u': {
+      int *p = calc_prime_under(200);
+      for (int i = 1; i < p[0]; i++) {
+        if (p[i] > 100) {
+          printf("%d\n", p[i]);
+        }
+      }
+    } break;
+
+    case 'g':
+      guess_number_game();
       break;
 
     default:
