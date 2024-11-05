@@ -131,11 +131,15 @@ int main(void) {
       break;
 
     case '0': {
-      printf("encrypted: %s\n", encrypt(optarg));
+      char *estr = encrypt(optarg);
+      printf("encrypted: %s\n", estr);
+      free(estr);
     } break;
 
     case '1': {
-      printf("decrypted: %s\n", decrypt(optarg));
+      char *dstr = decrypt(optarg);
+      printf("decrypted: %s\n", dstr);
+      free(dstr);
     } break;
 
     case 'u': {
@@ -145,6 +149,7 @@ int main(void) {
           printf("%d\n", p[i]);
         }
       }
+      free(p);
     } break;
 
     case 'g':

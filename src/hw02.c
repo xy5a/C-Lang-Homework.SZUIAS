@@ -65,6 +65,8 @@ int *calc_prime_under(int i) {
     }
   }
 
+  free(num);
+
   return primes;
 }
 
@@ -72,30 +74,26 @@ void guess_number_game(void) {
   srand(time(NULL));
   int targit = rand() % 100;
 
-  int h = 10;
+  int h;
   int guess;
-game:
 
-  printf("guess number: ");
-  scanf(" %d", &guess);
+  for (h = 10; h >= 0; h--) {
+    printf("guess number: ");
+    scanf(" %d", &guess);
 
-  if (guess == targit) {
-    goto success;
-  } else if (guess > targit) {
-    printf("%d is bigger than the targit\n", guess);
-  } else {
-    printf("%d is smaller than the targit\n", guess);
+    if (guess == targit) {
+      break;
+    } else if (guess > targit) {
+      printf("%d is bigger than the targit\n", guess);
+    } else {
+      printf("%d is smaller than the targit\n", guess);
+    }
   }
 
-  h--;
-  if (h)
-    goto game;
-
-  printf("you failed\n");
-  goto end;
-
-success:
-  printf("you successed\n");
-end:
+  if (h > 0) {
+    printf("you successed\n");
+  } else {
+    printf("you failed\n");
+  }
   printf("targit is %d\n", targit);
 }
