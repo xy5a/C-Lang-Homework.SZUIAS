@@ -4,6 +4,9 @@
 
 MalVar *mal_new_var(void) { return malloc(sizeof(MalVar)); }
 
+static MalVar _NIL = {MAL_NIL, {0}};
+
+MalVar *mal_nil(void) { return &_NIL; }
 MalVar *mal_new_symbol(const char *name) {
   MalVar *var = mal_new_var();
   var->type = MAL_SYM;
@@ -19,11 +22,18 @@ MalVar *mal_new_string(const char *str) {
   return var;
 }
 
-MalVar *mal_new_cons(MalVar *a, MalVar *b) {
+MalVar *mal_new_num(double num) {
+  MalVar *var = mal_new_var();
+  var->type = MAL_NUM;
+  var->var.num = num;
+  return var;
+}
+
+MalVar *mal_new_cons(MalVar *car, MalVar *cdr) {
   MalVar *var = mal_new_var();
   var->type = MAL_CONS;
-  var->var.cons[0] = a;
-  var->var.cons[1] = b;
+  var->var.cons.car = car;
+  var->var.cons.cdr = cdr;
   return var;
 }
 
@@ -36,8 +46,8 @@ void mal_free(MalVar *var) {
     free(var->var.str);
     break;
   case MAL_CONS:
-    mal_free(var->var.cons[0]);
-    mal_free(var->var.cons[1]);
+    mal_free(var->var.cons.car);
+    mal_free(var->var.cons.cdr);
     break;
 
   case MAL_NIL:

@@ -6,14 +6,14 @@
 
 MalVar *EVAL(MalVar *expr) { return expr; }
 
-void PRINT(MalVar *expr) { printf("%s\n", expr); }
+void PRINT(MalVar *expr) { reader_print((Reader *)(expr)); }
 
 int main(int argc, char **argv) {
 
-  for (char *input = readline(">"); input; input = readline(">")) {
+  for (char input[1000]; *input; fgets(input, sizeof(input), stdin)) {
 
     MalVar *expr = READ(input);
-    char *result = EVAL(expr);
+    MalVar *result = EVAL(expr);
     PRINT(result);
   }
 

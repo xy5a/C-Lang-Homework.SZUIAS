@@ -4,13 +4,10 @@ cc = meson.get_compiler('c')
 
 deps = [
   cc.find_library('m', required: false),
-  dependency('libeditline'),
-  dependency(
-    'libpcre2-posix',
-  ),
+  cc.find_library('gc'),
 ]
 
-src = files('src/hw01.c', 'src/main.c')
+subdir('src')
 
 executable(
   'C-Lang-Homework',

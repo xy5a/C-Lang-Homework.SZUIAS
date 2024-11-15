@@ -14,13 +14,16 @@ typedef struct MalVar {
   union {
     double num;
     char *str;
-    struct MalVar *cons[2];
+    struct {
+      struct MalVar *car;
+      struct MalVar *cdr;
+    } cons;
     struct MalVar *(*fn)(struct MalVar *);
     char *sym;
   } var;
 } MalVar;
 
-static MalVar _NIL = {MAL_NIL, {0}};
+MalVar *mal_nil(void);
 
 // will copy name
 MalVar *mal_new_symbol(const char *);

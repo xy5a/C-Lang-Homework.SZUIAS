@@ -1,147 +1,439 @@
 #include "read.h"
 #include "types.h"
-#include <regex.h>
+#include <ctype.h>
+#include <gc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define PCRE2_CODE_UNIT_WIDTH 8
-#include "pcre2.h"
 
-MalVar read_atom(char *in) {
-  char read_cache[50];
-  // read string
-  if (*in == '"') {
+MalVar *READ(char *in) { return (MalVar *)tokenize(in); }
+
+#define TOKEN_SPECIAL_CHARACTER 1
+#define TOKEN_STRING 2
+#define TOKEN_INTEGER 3
+#define TOKEN_FLOAT 4
+#define TOKEN_SYMBOL 5
+#define TOKEN_COMMENT 6
+#define TOKEN_KEYWORD 7
+#define TOKEN_TRUE 8
+#define TOKEN_FALSE 9
+#define TOKEN_NIL 10
+
+#define SYMBOL_NIL "nil"
+#define SYMBOL_TRUE "true"
+#define SYMBOL_FALSE "false"
+#define SYMBOL_QUOTE "quote"
+#define SYMBOL_QUASIQUOTE "quasiquote"
+#define SYMBOL_UNQUOTE "unquote"
+#define SYMBOL_SPLICE_UNQUOTE "splice-unquote"
+#define SYMBOL_DEREF "deref"
+#define SYMBOL_WITH_META "with-meta"
+
+Token *token_allocate(char *str, long num_chars, int type, char *error) {
+
+  /* allocate space for the string */
+  char *data = GC_MALLOC(sizeof(*data) * num_chars +
+                         1);     /* include space for null byte */
+  strncpy(data, str, num_chars); /* copy num_chars characters into data */
+  data[num_chars] = '\0';        /* manually add the null byte */
+
+  /* allocate space for the token struct */
+  Token *token = GC_MALLOC(sizeof(*token));
+  token->data = data;
+  token->type = type;
+  token->error = error;
+
+  return token;
+}
+
+char *unescape_string(char *str, long length) {
+
+  char *dest = GC_MALLOC(sizeof(*dest) * length + 1);
+
+  long j = 0;
+  for (long i = 0; i < length; i++) {
+
+    /* look for the quoting character */
+    if (str[i] == '\\') {
+
+      switch (str[i + 1]) {
+
+        /* replace '\"' with normal '"' */
+      case '"':
+        dest[j++] = '"';
+        i++; /* skip extra char */
+        break;
+
+        /* replace '\n' with newline 0x0A */
+      case 'n':
+        dest[j++] = 0x0A;
+        i++; /* skip extra char */
+        break;
+
+        /* replace '\\' with '\' */
+      case '\\':
+        dest[j++] = '\\';
+        i++; /* skip extra char */
+        break;
+
+      default:
+        /* just a '\' symbol so copy it */
+        dest[j++] = '\\';
+      }
+    }
+    /* not a quote so copy it */
+    else {
+      dest[j++] = str[i];
+    }
+  }
+  dest[j] = '\0';
+
+  return dest;
+}
+
+Reader *reader_make(long token_capacity) {
+
+  Reader *reader = GC_MALLOC(sizeof(*reader));
+
+  reader->max_tokens = token_capacity;
+  reader->position = 0;
+  reader->token_count = 0;
+  reader->token_data = GC_MALLOC(sizeof(Token *) * token_capacity);
+  reader->error = NULL;
+
+  return reader;
+}
+
+Reader *reader_append(Reader *reader, Token *token) {
+
+  if (reader->token_count < reader->max_tokens) {
+
+    reader->token_data[reader->token_count] = token;
+    reader->token_count++;
+  } else {
+    /* TODO: expand the storage more intelligently */
+    reader->max_tokens *= 2;
+    reader = GC_REALLOC(reader, sizeof(*reader) * reader->max_tokens);
+    reader->token_data[reader->token_count] = token;
+    reader->token_count++;
+  }
+  return reader;
+}
+
+Token *reader_peek(const Reader *reader) {
+
+  return (reader->token_data[reader->position]);
+}
+
+Token *reader_next(Reader *reader) {
+
+  Token *tok = reader->token_data[reader->position];
+
+  if (reader->position == -1) {
+    return NULL;
+  } else if (reader->position < reader->token_count) {
+    (reader->position)++;
+    return tok;
+  } else {
+    reader->position = -1;
+    return tok;
   }
 }
 
-PCRE2_SPTR8 _re_raw =
-    (const unsigned char *)"([\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:\\.|[^\\\\\"])*"
-                           "\"?|;.*|[^\\s\\[\\]{}('\"`,;)]*)";
+void reader_print(Reader *reader) {
+  /* NOTE: needed for debugging the reader only */
 
-MalVar *read_from2(const char *in) {
-  MalVar *ast;
-  MalVar *read_stack[50];
-  read_stack[0] = &_NIL;
-  ast = read_stack[0];
-  int read_stack_head = 0;
+  Token *tok;
 
-  regex_t *re_code;
-  regcomp(re_code, _re_raw, REG_EXTENDED);
+  for (long i = 0; i < reader->token_count; i++) {
 
-  regmatch_t match_data[2];
+    tok = reader_next(reader);
 
-  for (char *head = in; regexec(re_code, head, 2, match_data, 0) == 0;
-       head += match_data[0].rm_eo) {
+    switch (tok->type) {
+    case TOKEN_SPECIAL_CHARACTER:
+      printf("special character: %s", tok->data);
+      break;
+    case TOKEN_STRING:
+      printf("string: %s", tok->data);
+      break;
+    case TOKEN_INTEGER:
+      printf("integer: %s", tok->data);
+      break;
+    case TOKEN_FLOAT:
+      printf("float: %s", tok->data);
+      break;
+    case TOKEN_SYMBOL:
+      printf("symbol: %s", tok->data);
+      break;
+    case TOKEN_COMMENT:
+      printf("comment: \"%s\"", tok->data);
+      break;
+    case TOKEN_KEYWORD:
+      printf("keyword: %s", tok->data);
+      break;
+    case TOKEN_TRUE:
+      printf("true: %s", tok->data);
+      break;
+    case TOKEN_FALSE:
+      printf("false: %s", tok->data);
+      break;
+    case TOKEN_NIL:
+      printf("nil: %s", tok->data);
+      break;
+    }
+    /* print an error for any tokens with an error string */
+    tok->error ? printf(" - %s", tok->error) : 0;
+  }
+}
 
-    char *toks = head + match_data[1].rm_so;
-    int tokl = match_data[1].rm_so - match_data[1].rm_eo;
+Reader *tokenize(char *token_string) {
 
-    switch (*toks) {
-    // start a list
-    case '(': {
-      MalVar *new_cons = mal_new_cons(&_NIL, &_NIL);
-      read_stack[read_stack_head] = new_cons;
-      read_stack[++read_stack_head] = new_cons->var.cons[0];
-    } break;
+  /* allocate enough space for a Reader */
+  /* TODO: over-allocates space */
+  Reader *reader = reader_make(strlen(token_string));
 
-    // end a list
-    case ')':
-      read_stack_head--;
+  for (char *next = token_string; *next != '\0';) {
+
+    Token *token = NULL;
+
+    switch (*next) {
+      /* skip whitespace */
+    case ' ':
+    case ',':
+    case 0x0A: /* newline */
+      next++;
+      token = NULL; /* no token for whitespace */
       break;
 
-    // read string
-    case '"':
-      if (toks[tokl - 1] == '"') {
-        toks[tokl - 1] = '\0';
-        MalVar *new_str = mal_new_string(toks + 1);
-        read_stack[read_stack_head] = new_str;
+      /* single character token */
+    case '[':
+    case '\\':
+    case ']':
+    case '{':
+    case '}':
+    case '(':
+    case ')':
+    case '\'':
+    case '@':
+    case '`':
+    case '^':
+      next = read_fixed_length_token(next, &token, 1);
+      break;
 
+      /* single or double character token */
+    case '~':
+      if (*(next + 1) == '@') {
+        next = read_fixed_length_token(next, &token, 2);
       } else {
-        printf("error: unterminated string\n");
-        exit(1);
+        next = read_fixed_length_token(next, &token, 1);
       }
       break;
 
-    default: {
-      if (*toks >= '0' && *toks <= '9') {
-        toks[tokl] = '\0';
-        MalVar *new_num = mal_new_num(atof(toks));
-        read_stack[read_stack_head] = new_num;
-      }
-    }
-
-    break;
-    }
-  }
-
-  return ast;
-}
-
-MalVar *read_from(const char *in) {
-  MalVar *ast;
-  MalVar *read_stack[50];
-  read_stack[0] = &_NIL;
-  ast = read_stack[0];
-  int read_stack_head = 0;
-
-  int pcre2_error_code;
-
-  size_t pcre2_error_offset;
-
-  pcre2_code *re_code =
-      pcre2_compile(_re_raw, PCRE2_ZERO_TERMINATED, PCRE2_UTF,
-                    &pcre2_error_code, &pcre2_error_offset, NULL);
-
-  pcre2_match_data *match_data =
-      pcre2_match_data_create_from_pattern(re_code, NULL);
-
-  int head = 0, tail = strlen(in);
-
-  while (head < tail) {
-    PCRE2_UCHAR **list;
-    PCRE2_SIZE *length;
-
-    pcre2_match(re_code, in, tail, head, 0, match_data, NULL);
-    pcre2_substring_list_get(match_data, &list, &length);
-
-    PCRE2_UCHAR *token = list[1];
-
-    switch (*token) {
-    // start a list
-    case '(': {
-      MalVar *new_cons = mal_new_cons(&_NIL, &_NIL);
-      read_stack[read_stack_head]->var.cons[0] = new_cons;
-      read_stack[++read_stack_head] = new_cons;
-    } break;
-
-    // end a list
-    case ')':
-      break;
-
-    // read string
+      /* read string of characters within double quotes */
     case '"':
+      next = read_string_token(next, &token);
+      break;
+
+      /* read a comment - all remaining input until newline */
+    case ';':
+      next = read_comment_token(next, &token);
+      token = NULL; /* skip token for comments */
+      break;
+
+      /* read an integer */
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      next = read_number_token(next, &token);
+      //      next = read_integer_token(next, &token);
+      break;
+
+      /* integer may be prefixed with +/- */
+    case '+':
+    case '-':
+      if (isdigit(next[1])) {
+        next = read_number_token(next, &token);
+        //      next = read_integer_token(next, &token);
+      } else { /* if not digits it is part of a symbol */
+        next = read_symbol_token(next, &token);
+      }
+      break;
+
+      /* read keyword */
+    case ':':
+      next = read_keyword_token(next, &token);
+      break;
+
+      /* read anything else as a symbol */
+    default:
+      next = read_symbol_token(next, &token);
       break;
     }
 
-    head += length[0];
-  }
+    if (!token) {
+      /* if no token was read (whitespace or comments)
+         continue the loop */
+      continue;
+    } else {
 
-  return ast;
-}
-
-MalVar *read_file(FILE *in) {
-  MalVar *ast;
-  MalVar *read_stack[50];
-  int read_stack_head = 0;
-  char read_cache[100];
-
-  while (!feof(in)) {
-    if (fscanf(in, " \"%s\" ", read_cache)) {
-      // read string
-      MalVar *new_str = mal_new_string(read_cache);
+      if (token->error) {
+        /* report any errors with an early return */
+        reader = reader_append(reader, token);
+        reader->error = token->error;
+        return reader;
+      }
+      /* otherwise append the token and continue */
+      reader = reader_append(reader, token);
     }
   }
+  return reader;
 }
 
-MalVar *READ(char *in) {}
+char *read_fixed_length_token(char *current, Token **ptoken, int n) {
+
+  *ptoken = token_allocate(current, n, TOKEN_SPECIAL_CHARACTER, NULL);
+  return (current + n);
+}
+
+char *read_terminated_token(char *current, Token **ptoken, int token_type) {
+
+  static char *const terminating_characters = " ,[](){};\n";
+
+  /* search for first terminating character */
+  char *end = strpbrk(current, terminating_characters);
+
+  /* if terminating character is not found it implies the end of the string */
+  long token_length = !end ? strlen(current) : (end - current);
+
+  /* next token starts with the terminating character */
+  *ptoken = token_allocate(current, token_length, token_type, NULL);
+  return (current + token_length);
+}
+
+char *read_symbol_token(char *current, Token **ptoken) {
+
+  char *next = read_terminated_token(current, ptoken, TOKEN_SYMBOL);
+
+  /* check for reserved symbols */
+  if (strcmp((*ptoken)->data, SYMBOL_NIL) == 0) {
+    (*ptoken)->type = TOKEN_NIL;
+  } else if (strcmp((*ptoken)->data, SYMBOL_TRUE) == 0) {
+    (*ptoken)->type = TOKEN_TRUE;
+  } else if (strcmp((*ptoken)->data, SYMBOL_FALSE) == 0) {
+    (*ptoken)->type = TOKEN_FALSE;
+  }
+
+  /* TODO: check for invalid characters */
+  return next;
+}
+
+char *read_keyword_token(char *current, Token **ptoken) {
+
+  /* TODO: check for invalid characters */
+  return read_terminated_token(current + 1, ptoken, TOKEN_KEYWORD);
+}
+
+char *read_number_token(char *current, Token **ptoken) {
+
+  int has_decimal_point = 0;
+
+  char *next = read_terminated_token(current, ptoken, TOKEN_INTEGER);
+  long token_length = next - current;
+
+  /* first char is either digit or '+' or '-'
+     check the rest consists of valid characters */
+  for (long i = 1; i < token_length; i++) {
+
+    if ((*ptoken)->data[i] == '.' && has_decimal_point) {
+      (*ptoken)->error = "Invalid character reading number";
+      break;
+    } else if ((*ptoken)->data[i] == '.' && !has_decimal_point) {
+      has_decimal_point = 1;
+      (*ptoken)->type = TOKEN_FLOAT;
+      break;
+    } else if (!(isdigit((*ptoken)->data[i]))) {
+      (*ptoken)->error = "Invalid character reading number";
+      break;
+    }
+  }
+  return next;
+}
+
+char *read_string_token(char *current, Token **ptoken) {
+
+  char *start, *end, *error = NULL;
+  long token_length = 0;
+
+  start = current + 1;
+
+  while (1) {
+    end = strchr(start, '"'); /* find the next " character */
+
+    /* handle failure to find closing quotes - implies end of input has been
+     * reached */
+    if (!end) {
+      end = current + strlen(current);
+      token_length = strlen(current);
+
+      error = "EOF reached with unterminated string";
+      break;
+    }
+    /* if the character preceding the " is a '\' character (escape), need to
+       check if it is escaping the " and if it is then keep searching from the
+       next character */
+    else if (*(end - 1) == '\\') {
+
+      char *back_ptr = end - 1;
+      while (*back_ptr == '\\') {
+        back_ptr--; /* back up to count the escape characters '\' */
+      }
+
+      long escape_chars = (end - 1) - back_ptr;
+
+      if (escape_chars % 2 ==
+          1) {           /* odd number of '\' chars means " is not quoted */
+        start = end + 1; /* so keep searching */
+      } else {
+        /* even number of '\' characters means we found the terminating quote
+         * mark */
+        token_length =
+            (end - current - 1); /* quotes are excluded from string token */
+        break;
+      }
+    } else {
+      token_length =
+          (end - current - 1); /* quotes are excluded from string token */
+      break;
+    }
+  }
+
+  char *unescaped_string = unescape_string(current + 1, token_length);
+  *ptoken = token_allocate(unescaped_string, strlen(unescaped_string),
+                           TOKEN_STRING, error);
+
+  return (end + 1);
+}
+
+char *read_comment_token(char *current, Token **ptoken) {
+  /* comment includes all remaining characters to the next newline */
+
+  /* search for newline character */
+  char *end = strchr(current, 0x0A);
+
+  /* if newline is not found it implies the end of string is reached */
+  long token_chars = !end ? strlen(current) : (end - current);
+
+  *ptoken = token_allocate(current, token_chars, TOKEN_COMMENT, NULL);
+
+  return (current + token_chars +
+          1); /* next token starts with the char after the newline */
+}
