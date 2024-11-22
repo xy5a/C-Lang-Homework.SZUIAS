@@ -1,9 +1,9 @@
 #include <stdbool.h>
 
-bool is_leap(int year);
+void is_leap(int argc, char **argv);
 
-double calc_func(double x);
+void calc_func(int argc, char **argv);
 
-double calc_prof_once(double p, double r);
+void calc_prof_once(int argc, char **argv);
 
-double calc_prof_twice(double p, double r);
+void calc_prof_twice(int argc, char **argv);
