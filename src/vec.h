@@ -25,10 +25,13 @@ Vec *vec_filter(Vec *v, int(f)(void *, void *), void *arg);
 Vec *vec_sort(Vec *v, int(cmp)(void *, void *));
 
 typedef struct {
-  int32_t *data;
+  uint32_t *data;
+  int sign;
   size_t len;
   size_t cap;
 } BigInt;
+
+#define BIGINT_NODE_MAX 1000000000
 
 BigInt *bigint_new(size_t size);
 void bigint_free(BigInt *v);

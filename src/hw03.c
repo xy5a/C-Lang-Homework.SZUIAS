@@ -153,3 +153,21 @@ void dice(int argc, char **argv) {
     printf("%d:\t %d, %d%%\n", i + 1, dice[i], dice[i] * 100 / count);
   }
 }
+
+void factorial(int argc, char **argv) {
+  int i = 40;
+  if (argc >= 2) {
+    i = atoi(argv[1]);
+  }
+
+  BigInt *b = bigint_new(50);
+  bigint_addi(b, 1);
+
+  for (int j = 1; j < i; j++) {
+    BigInt_muli(b, j);
+  }
+
+  printf("fatorial of %d: ", i);
+  bigint_print(b);
+  puts("");
+}

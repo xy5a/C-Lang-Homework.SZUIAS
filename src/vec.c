@@ -142,8 +142,10 @@ BigInt *bigint_new(size_t size) {
   BigInt *bi = malloc(sizeof(BigInt));
   bi->cap = size;
   bi->len = 1;
-  bi->data = malloc(size * sizeof(int32_t));
+  bi->data = malloc(size * sizeof(uint32_t));
   bi->data[0] = 0;
+
+  return bi;
 }
 
 void bigint_free(BigInt *bi) {
@@ -152,8 +154,8 @@ void bigint_free(BigInt *bi) {
 }
 
 void bigint_print(BigInt *bi) {
-  for (size_t i = bi->len - 1; i >= 0; i--) {
-    printf("%d", bi->data[i]);
+  for (int i = bi->len - 1; i >= 0; i--) {
+    printf("%u", bi->data[i]);
   }
 }
 
@@ -169,43 +171,48 @@ BigInt *bigint_add(BigInt *a, BigInt *b) {
     if (i < b->len) {
       sum += b->data[i];
     }
-    if (sum >= INT32_MAX) {
-      sum -= INT32_MAX;
+    if (sum >= BIGINT_NODE_MAX) {
+      sum -= BIGINT_NODE_MAX;
       carry = 1;
     }
     c->data[i] = sum;
   }
 }
 
-void bigint_addi(BigInt *v, int i) {
+void bigint_addi(BigInt *v, int imm) {
   int64_t sum = 0;
-  int carry = 0;
+  int carry = imm;
   for (size_t i = 0; i < v->len || carry; i++) {
     sum = carry;
     carry = 0;
     if (i < v->len) {
       sum += v->data[i];
     }
-    if (sum >= INT32_MAX) {
-      sum -= INT32_MAX;
-      carry = 1;
+    if (sum >= BIGINT_NODE_MAX) {
+      carry = sum / (BIGINT_NODE_MAX);
+      sum = sum % (BIGINT_NODE_MAX);
+    }
+    if (i >= v->len) {
+      v->len = i + 1;
     }
     v->data[i] = sum;
   }
 }
 
-void BigInt_muli(BigInt *v, int i) {
-  int64_t prod = 0;
+void BigInt_muli(BigInt *v, int imm) {
+  uint64_t prod = 0;
   int carry = 0;
   for (size_t i = 0; i < v->len || carry; i++) {
     prod = carry;
     carry = 0;
     if (i < v->len) {
-      prod += v->data[i] * i;
+      prod += v->data[i] * imm;
+    } else {
+      v->len = i + 1;
     }
-    if (prod >= INT32_MAX) {
-      carry = prod >> 32;
-      prod = prod & INT32_MAX;
+    if (prod >= BIGINT_NODE_MAX) {
+      carry = prod / (BIGINT_NODE_MAX);
+      prod = prod % (BIGINT_NODE_MAX);
     }
     v->data[i] = prod;
   }

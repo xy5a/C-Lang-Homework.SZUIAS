@@ -44,7 +44,8 @@ int main(void) {
                 {"maxgrade", grade_maximum},
                 {"mingrade", grade_minimum},
                 {"avgsgrade", grade_average_student},
-                {"dice", dice}};
+                {"dice", dice},
+                {"fact", factorial}};
 
     for (size_t i = 0; i < sizeof(cmds) / sizeof(cmds[0]); i++) {
       if (strcmp(subcmd, cmds[i].name) == 0) {
