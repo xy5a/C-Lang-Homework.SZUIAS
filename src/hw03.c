@@ -163,7 +163,7 @@ void factorial(int argc, char **argv) {
   BigInt *b = bigint_new(50);
   bigint_addi(b, 1);
 
-  for (int j = 1; j < i; j++) {
+  for (int j = 1; j <= i; j++) {
     BigInt_muli(b, j);
   }
 
