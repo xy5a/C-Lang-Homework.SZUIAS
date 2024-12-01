@@ -5,7 +5,15 @@ deps = [
   cc.find_library('m', required: false),
 ]
 
-src = files('src/hw01.c', 'src/hw02.c', 'src/hw03.c', 'src/main.c', 'src/vec.c')
+src = files(
+  'src/hw01.c',
+  'src/hw02.c',
+  'src/hw03.c',
+  'src/hw04.c',
+  'src/main.c',
+  'src/my_string.c',
+  'src/vec.c',
+)
 
 executable(
   'C-Lang-Homework',

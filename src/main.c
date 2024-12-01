@@ -1,9 +1,11 @@
+#include "my_string.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 
 #include "hw03.h"
 
+#include "hw04.h"
 void usage(void) { puts("operations: F Y P d f t 0 1 u g q"); }
 
 void quit(int _, char **_v) {
@@ -45,7 +47,13 @@ int main(void) {
                 {"mingrade", grade_minimum},
                 {"avgsgrade", grade_average_student},
                 {"dice", dice},
-                {"fact", factorial}};
+                {"fact", factorial},
+                {"strcmp", str_compare},
+                {"config", config},
+                {"add_score", add_score},
+                {"print_score", print_score},
+                {"print_judge", print_judge}};
+    ;
 
     for (size_t i = 0; i < sizeof(cmds) / sizeof(cmds[0]); i++) {
       if (strcmp(subcmd, cmds[i].name) == 0) {
