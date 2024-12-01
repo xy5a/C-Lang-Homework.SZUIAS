@@ -22,7 +22,7 @@ int main(void) {
     char *argv[100];
     char cache[100];
     fgets(cache, 100, stdin);
-    for (uint head = 0, tail = 0; tail < strlen(cache); tail++) {
+    for (size_t head = 0, tail = 0; tail < strlen(cache); tail++) {
       if (cache[tail] == ' ' || cache[tail] == '\n') {
         if (head < tail) {
           argv[argc] = strndup(cache + head, tail - head);
