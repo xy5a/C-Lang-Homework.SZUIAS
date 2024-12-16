@@ -49,7 +49,7 @@ int main(void) {
         {"mingrade", grade_minimum},
         {"avgsgrade", grade_average_student},
         {"dice", dice},
-        {"fact", factorial},
+        {"fact", big_factorial},
         {"strcmp", str_compare},
         {"config", config},
         {"add_score", add_score},

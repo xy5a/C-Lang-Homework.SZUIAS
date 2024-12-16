@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -24,7 +25,7 @@ int isperfect(int n) {
   return sum == n;
 }
 
-int fatorial(int n) { return n == 0 ? 1 : n * fatorial(n - 1); }
+uint64_t factorial(int n) { return n == 0 ? 1 : n * factorial(n - 1); }
 
 int gcd(int a, int b) {
   return (a == b ? a
@@ -121,7 +122,7 @@ void num1(int argc, char **argv) {
 #endif
   printf("isprime(%d) = %s\n", i, isprime(i) ? "true" : "false");
   printf("isperfect(%d) = %s\n", i, isperfect(i) ? "true" : "false");
-  printf("fatorial(%d) = %d\n", i, fatorial(i));
+  printf("fatorial(%d) = %d\n", i, factorial(i));
 #ifndef MF
   scanf("%d", &j);
 #else

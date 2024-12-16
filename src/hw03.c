@@ -154,7 +154,7 @@ void dice(int argc, char **argv) {
   }
 }
 
-void factorial(int argc, char **argv) {
+void big_factorial(int argc, char **argv) {
   int i = 40;
   if (argc >= 2) {
     i = atoi(argv[1]);

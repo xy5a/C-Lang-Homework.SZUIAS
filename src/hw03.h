@@ -14,4 +14,4 @@ void grade_average_student(int argc, char **argv);
 
 void dice(int argc, char **argv);
 
-void factorial(int argc, char **argv);
+void big_factorial(int argc, char **argv);
