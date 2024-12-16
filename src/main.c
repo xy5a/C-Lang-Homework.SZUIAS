@@ -6,6 +6,7 @@
 #include "hw03.h"
 
 #include "hw04.h"
+#include "hw05.h"
 void usage(void) { puts("operations: F Y P d f t 0 1 u g q"); }
 
 void quit(int _, char **_v) {
@@ -38,21 +39,27 @@ int main(void) {
     struct Cmd_s {
       char *name;
       void (*func)(int argc, char *argv[]);
-    } cmds[] = {{"sort", sort_int},
-                {"quit", quit},
-                {"igrade", grade_insert},
-                {"pgrade", grade_print},
-                {"avgrade", grade_average},
-                {"maxgrade", grade_maximum},
-                {"mingrade", grade_minimum},
-                {"avgsgrade", grade_average_student},
-                {"dice", dice},
-                {"fact", factorial},
-                {"strcmp", str_compare},
-                {"config", config},
-                {"add_score", add_score},
-                {"print_score", print_score},
-                {"print_judge", print_judge}};
+    } cmds[] = {
+        {"sort", sort_int},
+        {"quit", quit},
+        {"igrade", grade_insert},
+        {"pgrade", grade_print},
+        {"avgrade", grade_average},
+        {"maxgrade", grade_maximum},
+        {"mingrade", grade_minimum},
+        {"avgsgrade", grade_average_student},
+        {"dice", dice},
+        {"fact", factorial},
+        {"strcmp", str_compare},
+        {"config", config},
+        {"add_score", add_score},
+        {"print_score", print_score},
+        {"print_judge", print_judge},
+        {"p1num", num1},
+        {"p2num", num2},
+        {"q.ez", question_simple},
+        {"q.hard", question_hard},
+    };
     ;
 
     for (size_t i = 0; i < sizeof(cmds) / sizeof(cmds[0]); i++) {

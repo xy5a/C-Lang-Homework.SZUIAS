@@ -34,6 +34,7 @@ typedef struct {
 #define BIGINT_NODE_MAX 1000000000
 
 BigInt *bigint_new(size_t size);
+int bigint_resize(BigInt *v, size_t new_size);
 void bigint_free(BigInt *v);
 void bigint_addi(BigInt *v, int i);
 void bigint_print(BigInt *v);
