@@ -15,6 +15,22 @@ void quit(int _, char **_v) {
   exit(0);
 }
 
+#ifdef WIN32 // strndup is not available on Windows
+char *strndup(const char *s, size_t n) {
+  size_t len = strlen(s);
+  if (len > n) {
+    len = n;
+  }
+  char *result = (char *)malloc(len + 1);
+  if (!result) {
+    return NULL;
+  }
+  strncpy(result, s, len);
+  result[len] = '\0';
+  return result;
+}
+#endif
+
 int main(void) {
 
   while (1) {
