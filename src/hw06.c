@@ -164,6 +164,26 @@ enum Matrix_Error matrix_mul(Matrix *matrix1, Matrix *matrix2, Matrix *result) {
   return MATRIX_OK;
 }
 
+enum Matrix_Error matrix_dotprod(Matrix *matrix1, Matrix *matrix2,
+                                 Matrix *result) {
+  if (matrix1 == NULL || matrix2 == NULL || result == NULL) {
+    return MATRIX_ERROR_INVALID_ARGUMENT;
+  } else if (matrix1->size[0] != matrix2->size[0] ||
+             matrix1->size[1] != matrix2->size[1]) {
+    return MATRIX_ERROR_INVALID_DIMENSION;
+  }
+  matrix_resize(result, matrix1->size[0], matrix1->size[1]);
+  for (int i = 0; i < matrix1->size[0]; i++) {
+    for (int j = 0; j < matrix1->size[1]; j++) {
+      dtype value1, value2;
+      matrix_get(matrix1, i, j, &value1);
+      matrix_get(matrix2, i, j, &value2);
+      matrix_set(result, i, j, value1 * value2);
+    }
+  }
+  return MATRIX_OK;
+}
+
 enum Matrix_Error matrix_add(Matrix *matrix1, Matrix *matrix2, Matrix *result) {
   // will cast to the bigger matrix
   if (matrix1 == NULL || matrix2 == NULL || result == NULL) {
@@ -245,6 +265,10 @@ int matrix_test(void) {
   matrix_print(matrix1);
   puts("Matrix 2");
   matrix_print(matrix2);
+
+  matrix_dotprod(matrix1, matrix1, result);
+  puts("Matrix 1 . Matrix 1");
+  matrix_print(result);
 
   matrix_mul(matrix1, matrix2, result);
   puts("Matrix 1 * Matrix 2");
