@@ -122,7 +122,7 @@ void num1(int argc, char **argv) {
 #endif
   printf("isprime(%d) = %s\n", i, isprime(i) ? "true" : "false");
   printf("isperfect(%d) = %s\n", i, isperfect(i) ? "true" : "false");
-  printf("fatorial(%d) = %d\n", i, factorial(i));
+  printf("fatorial(%d) = %lu\n", i, factorial(i));
 #ifndef MF
   scanf("%d", &j);
 #else

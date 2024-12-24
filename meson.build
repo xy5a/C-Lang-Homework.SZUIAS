@@ -11,6 +11,7 @@ src = files(
   'src/hw03.c',
   'src/hw04.c',
   'src/hw05.c',
+  'src/hw06.c',
   'src/main.c',
   'src/my_string.c',
   'src/vec.c',

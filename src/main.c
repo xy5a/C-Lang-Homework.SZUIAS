@@ -1,4 +1,3 @@
-#include "my_string.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -7,6 +6,7 @@
 
 #include "hw04.h"
 #include "hw05.h"
+#include "hw06.h"
 void usage(void) { puts("operations: F Y P d f t 0 1 u g q"); }
 
 void quit(int _, char **_v) {
@@ -75,8 +75,8 @@ int main(void) {
         {"p2num", num2},
         {"q.ez", question_simple},
         {"q.hard", question_hard},
+        {"last", hw06},
     };
-    ;
 
     for (size_t i = 0; i < sizeof(cmds) / sizeof(cmds[0]); i++) {
       if (strcmp(subcmd, cmds[i].name) == 0) {
