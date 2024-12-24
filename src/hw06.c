@@ -147,14 +147,8 @@ enum Matrix_Error matrix_mul(Matrix *matrix1, Matrix *matrix2, Matrix *result) {
     return MATRIX_ERROR_INVALID_ARGUMENT;
   } else if (matrix1->size[1] != matrix2->size[0]) {
     return MATRIX_ERROR_INVALID_DIMENSION;
-  } else if (matrix1->size[0] != result->size[0] ||
-             matrix2->size[1] != result->size[1]) {
-    result->size[0] = matrix1->size[0];
-    result->size[1] = matrix2->size[1];
-    free(result->data);
-    result->data = malloc(sizeof(dtype) * result->size[0] * result->size[1]);
   }
-
+  matrix_resize(result, matrix1->size[0], matrix2->size[1]);
   for (int i = 0; i < matrix1->size[0]; i++) {
     for (int j = 0; j < matrix2->size[1]; j++) {
       dtype sum = 0;
